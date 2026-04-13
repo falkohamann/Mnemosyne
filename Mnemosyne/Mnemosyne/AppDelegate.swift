@@ -4,10 +4,15 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
+    let store = HistoryStore()
+    private var monitor: ClipboardMonitor!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hide from Dock programmatically
         NSApp.setActivationPolicy(.accessory)
+
+        monitor = ClipboardMonitor(store: store)
+        monitor.start()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
