@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(python3 /Users/D063320/.claude/hooks/update-progress.py /Users/D063320/projects/BREADCRUMB.md Mnemosyne/main '## Mnemosyne/main — 2026-04-13 __CMDSUB_OUTPUT__ \\(initial\\):*)",
+      "Bash(python3:*)",
+      "Bash(log stream:*)",
+      "Bash(log show:*)",
+      "Read(//private/var/log/**)",
+      "Read(//Library/Logs/**)",
+      "Bash(xcode-select -p)",
+      "Bash(swift --version)",
+      "Bash(swiftc --version)"
+    ]
+  }
+}
