@@ -66,18 +66,18 @@ struct MenubarView: View {
                         ForEach(store.filteredItems(query: searchQuery)) { item in
                             ClipboardItemRow(item: item)
                                 .padding(.horizontal, 12)
-                                .onTapGesture {
+                                .onTapGesture(count: 2) {
                                     PasteService.paste(item: item, mode: .asIs)
                                 }
                                 .simultaneousGesture(
-                                    TapGesture()
+                                    TapGesture(count: 2)
                                         .modifiers(.option)
                                         .onEnded { _ in
                                             PasteService.paste(item: item, mode: .plainText)
                                         }
                                 )
                                 .simultaneousGesture(
-                                    TapGesture()
+                                    TapGesture(count: 2)
                                         .modifiers(.shift)
                                         .onEnded { _ in
                                             PasteService.paste(item: item, mode: .trimmed)
