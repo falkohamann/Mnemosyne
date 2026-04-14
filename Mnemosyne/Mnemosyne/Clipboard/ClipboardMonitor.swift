@@ -11,10 +11,13 @@ final class ClipboardMonitor {
     }
 
     func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            MainActor.assumeIsolated { self.checkForChanges() }
-        }
+        timer = Timer.scheduledTimer(
+            timeInterval: 0.5,
+            target: self,
+            selector: #selector(checkForChanges),
+            userInfo: nil,
+            repeats: true
+        )
     }
 
     func stop() {
@@ -22,7 +25,7 @@ final class ClipboardMonitor {
         timer = nil
     }
 
-    private func checkForChanges() {
+    @objc private func checkForChanges() {
         let pasteboard = NSPasteboard.general
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount

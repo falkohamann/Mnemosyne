@@ -4,7 +4,7 @@ import ServiceManagement
 struct SettingsView: View {
     @ObservedObject var store: HistoryStore
     @AppStorage("maxHistorySize") private var maxHistorySize: Int = 200
-    @State private var launchAtLogin: Bool = (SMAppService.mainApp.status == .enabled)
+    @State private var launchAtLogin: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -40,5 +40,8 @@ struct SettingsView: View {
         }
         .padding()
         .frame(width: 280)
+        .onAppear {
+            launchAtLogin = SMAppService.mainApp.status == .enabled
+        }
     }
 }
