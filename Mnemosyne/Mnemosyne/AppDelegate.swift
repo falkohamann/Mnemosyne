@@ -35,21 +35,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func togglePanel() {
-        guard let button = statusItem.button,
-              let buttonWindow = button.window else { return }
+        guard let button = statusItem.button else { return }
 
         if panel.isVisible {
             panel.orderOut(nil)
-        } else {
-            // Position panel below the status item button
-            let buttonFrame = buttonWindow.convertToScreen(button.frame)
-            let panelSize = panel.frame.size
-            let origin = NSPoint(
-                x: buttonFrame.midX - panelSize.width / 2,
-                y: buttonFrame.minY - panelSize.height - 4
-            )
-            panel.setFrameOrigin(origin)
-            panel.orderFrontRegardless()  // show without activating this app
+            return
         }
+
+        // Get the screen frame of the status item button
+        let buttonFrame: NSRect
+        if let buttonWindow = button.window {
+            buttonFrame = buttonWindow.convertToScreen(button.frame)
+        } else {
+            // Fallback: place near top-right of main screen
+            let screen = NSScreen.main ?? NSScreen.screens[0]
+            buttonFrame = NSRect(
+                x: screen.visibleFrame.maxX - 160,
+                y: screen.visibleFrame.maxY,
+                width: 0, height: 0
+            )
+        }
+
+        let panelSize = panel.frame.size
+        let origin = NSPoint(
+            x: buttonFrame.midX - panelSize.width / 2,
+            y: buttonFrame.minY - panelSize.height - 4
+        )
+        panel.setFrameOrigin(origin)
+        panel.orderFrontRegardless()
     }
 }
