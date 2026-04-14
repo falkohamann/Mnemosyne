@@ -1,6 +1,7 @@
 import XCTest
 @testable import Mnemosyne
 
+@MainActor
 final class HistoryStoreTests: XCTestCase {
     var store: HistoryStore!
     var tempURL: URL!
