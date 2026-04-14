@@ -69,20 +69,19 @@ struct MenubarView: View {
                                 .onTapGesture(count: 2) {
                                     PasteService.paste(item: item, mode: .asIs)
                                 }
-                                .simultaneousGesture(
-                                    TapGesture(count: 2)
-                                        .modifiers(.option)
-                                        .onEnded { _ in
+                                .contextMenu {
+                                    Button("Paste") {
+                                        PasteService.paste(item: item, mode: .asIs)
+                                    }
+                                    if item.isText {
+                                        Button("Paste as plain text") {
                                             PasteService.paste(item: item, mode: .plainText)
                                         }
-                                )
-                                .simultaneousGesture(
-                                    TapGesture(count: 2)
-                                        .modifiers(.shift)
-                                        .onEnded { _ in
+                                        Button("Paste trimmed") {
                                             PasteService.paste(item: item, mode: .trimmed)
                                         }
-                                )
+                                    }
+                                }
                             Divider()
                                 .padding(.leading, 12)
                         }
