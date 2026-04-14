@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let store = HistoryStore()
     private var monitor: ClipboardMonitor!
     private var eventMonitor: Any?
+    private var hotkeyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -38,6 +39,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         panel.contentViewController = hostingController
+
+        // Global ⌥Space hotkey — opens/closes the panel from any app
+        hotkeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            // keyCode 49 = Space, optionKey = ⌥
+            guard event.keyCode == 49,
+                  event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .option
+            else { return }
+            Task { @MainActor [weak self] in
+                self?.togglePanel()
+            }
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if let m = hotkeyMonitor { NSEvent.removeMonitor(m); hotkeyMonitor = nil }
     }
 
     @objc func togglePanel() {
