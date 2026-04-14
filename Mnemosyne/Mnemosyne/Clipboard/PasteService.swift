@@ -64,7 +64,7 @@ enum PasteService {
         guard checkAccessibility() else { return }
 
         // Close the popover so the previous app regains focus before we paste
-        NSApp.keyWindow?.close()
+        NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
 
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
