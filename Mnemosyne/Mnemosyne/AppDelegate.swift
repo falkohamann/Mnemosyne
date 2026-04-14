@@ -6,6 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NSPanel!
     let store = HistoryStore()
     private var monitor: ClipboardMonitor!
+    private var eventMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -29,7 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         panel.level = .popUpMenu
         panel.isMovable = false
-        panel.hidesOnDeactivate = true
+        panel.hidesOnDeactivate = false
         panel.backgroundColor = NSColor.windowBackgroundColor
         panel.contentViewController = NSHostingController(rootView: MenubarView(store: store))
     }
@@ -63,5 +64,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         panel.setFrameOrigin(origin)
         panel.orderFrontRegardless()
+
+        // Close panel when user clicks outside it
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.panel.orderOut(nil)
+            if let monitor = self?.eventMonitor {
+                NSEvent.removeMonitor(monitor)
+                self?.eventMonitor = nil
+            }
+        }
     }
 }
