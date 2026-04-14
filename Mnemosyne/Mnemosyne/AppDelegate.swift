@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: NSPanel!
@@ -21,18 +22,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
         }
 
-        // NSNonactivatingPanelMask: panel appears without stealing focus from other apps
+        let hostingController = NSHostingController(rootView: MenubarView(store: store))
+        hostingController.view.frame = NSRect(x: 0, y: 0, width: 320, height: 480)
+
         panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 480),
-            styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
+            styleMask: [.nonactivatingPanel, .titled, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
         panel.level = .popUpMenu
         panel.isMovable = false
         panel.hidesOnDeactivate = false
-        panel.backgroundColor = NSColor.windowBackgroundColor
-        panel.contentViewController = NSHostingController(rootView: MenubarView(store: store))
+        panel.isReleasedWhenClosed = false
+        panel.contentViewController = hostingController
     }
 
     @objc func togglePanel() {
@@ -40,21 +45,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if panel.isVisible {
             panel.orderOut(nil)
+            if let m = eventMonitor { NSEvent.removeMonitor(m); eventMonitor = nil }
             return
         }
 
-        // Get the screen frame of the status item button
         let buttonFrame: NSRect
         if let buttonWindow = button.window {
             buttonFrame = buttonWindow.convertToScreen(button.frame)
         } else {
-            // Fallback: place near top-right of main screen
             let screen = NSScreen.main ?? NSScreen.screens[0]
-            buttonFrame = NSRect(
-                x: screen.visibleFrame.maxX - 160,
-                y: screen.visibleFrame.maxY,
-                width: 0, height: 0
-            )
+            buttonFrame = NSRect(x: screen.visibleFrame.maxX - 160, y: screen.visibleFrame.maxY, width: 0, height: 0)
         }
 
         let panelSize = panel.frame.size
@@ -65,13 +65,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.setFrameOrigin(origin)
         panel.orderFrontRegardless()
 
-        // Close panel when user clicks outside it
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             self?.panel.orderOut(nil)
-            if let monitor = self?.eventMonitor {
-                NSEvent.removeMonitor(monitor)
-                self?.eventMonitor = nil
-            }
+            if let m = self?.eventMonitor { NSEvent.removeMonitor(m); self?.eventMonitor = nil }
         }
     }
 }
