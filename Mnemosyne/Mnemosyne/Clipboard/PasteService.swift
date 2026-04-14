@@ -61,12 +61,7 @@ enum PasteService {
     /// use `String(str)` — the text is already plain at this point; no RTF to strip.
     @MainActor
     static func paste(item: ClipboardItem, mode: PasteMode) {
-        let trusted = checkAccessibility()
-        print("[PasteService] accessibility trusted: \(trusted)")
-        guard trusted else {
-            print("[PasteService] aborting — no accessibility permission")
-            return
-        }
+        guard checkAccessibility() else { return }
 
         // Close the panel
         for window in NSApp.windows where window is NSPanel {
@@ -85,13 +80,10 @@ enum PasteService {
             case .plainText: finalStr = str
             }
             pasteboard.setString(finalStr, forType: .string)
-            print("[PasteService] wrote to pasteboard: \(finalStr.prefix(40))")
         case .image(let data):
             pasteboard.setData(data, forType: .png)
-            print("[PasteService] wrote image to pasteboard")
         }
 
-        // Longer delay so panel is fully gone and previous app is frontmost
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let src = CGEventSource(stateID: .hidSystemState)
             let vKey: CGKeyCode = 9
@@ -99,10 +91,8 @@ enum PasteService {
             let keyUp   = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: false)
             keyDown?.flags = .maskCommand
             keyUp?.flags   = .maskCommand
-            // .cghidEventTap targets the frontmost app at the HID level
             keyDown?.post(tap: .cghidEventTap)
             keyUp?.post(tap: .cghidEventTap)
-            print("[PasteService] CGEvent ⌘V posted")
         }
     }
 }
