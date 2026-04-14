@@ -1,6 +1,6 @@
 import Foundation
 
-final class PersistenceManager {
+final class PersistenceManager: Sendable {
     private let fileURL: URL
 
     /// Production initialiser — uses ~/Library/Application Support/Mnemosyne/history.json

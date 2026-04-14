@@ -8,8 +8,8 @@ final class HistoryStore: ObservableObject {
     private let persistence: PersistenceManager
     private let maxSize: Int
 
-    init(persistence: PersistenceManager = PersistenceManager(), maxSize: Int = 200) {
-        self.persistence = persistence
+    init(persistence: PersistenceManager? = nil, maxSize: Int = 200) {
+        self.persistence = persistence ?? PersistenceManager()
         self.maxSize = maxSize
         loadFromDisk()
     }

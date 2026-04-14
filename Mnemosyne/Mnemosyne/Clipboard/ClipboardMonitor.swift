@@ -12,9 +12,8 @@ final class ClipboardMonitor {
 
     func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.checkForChanges()
-            }
+            guard let self else { return }
+            MainActor.assumeIsolated { self.checkForChanges() }
         }
     }
 
