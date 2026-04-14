@@ -63,8 +63,11 @@ enum PasteService {
     static func paste(item: ClipboardItem, mode: PasteMode) {
         guard checkAccessibility() else { return }
 
-        // Close the popover so the previous app regains focus before we paste
+        // Close the panel — previous app already has focus since we never took it
         NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
+        for window in NSApp.windows where window is NSPanel {
+            window.orderOut(nil)
+        }
 
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
