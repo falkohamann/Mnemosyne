@@ -63,6 +63,9 @@ enum PasteService {
     static func paste(item: ClipboardItem, mode: PasteMode) {
         guard checkAccessibility() else { return }
 
+        // Close the popover so the previous app regains focus before we paste
+        NSApp.keyWindow?.close()
+
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
@@ -72,21 +75,24 @@ enum PasteService {
             switch mode {
             case .asIs:      finalStr = str
             case .trimmed:   finalStr = trimmed(str)
-            case .plainText: finalStr = str // already plain text at capture time
+            case .plainText: finalStr = str
             }
             pasteboard.setString(finalStr, forType: .string)
         case .image(let data):
             pasteboard.setData(data, forType: .png)
         }
 
-        let src = CGEventSource(stateID: .hidSystemState)
-        let vKey: CGKeyCode = 9
-        let keyDown = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: true)
-        let keyUp   = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: false)
-        keyDown?.flags = .maskCommand
-        keyUp?.flags   = .maskCommand
-        keyDown?.post(tap: .cgAnnotatedSessionEventTap)
-        keyUp?.post(tap: .cgAnnotatedSessionEventTap)
+        // Small delay so the previous app has time to become key before ⌘V fires
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let src = CGEventSource(stateID: .hidSystemState)
+            let vKey: CGKeyCode = 9
+            let keyDown = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: true)
+            let keyUp   = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: false)
+            keyDown?.flags = .maskCommand
+            keyUp?.flags   = .maskCommand
+            keyDown?.post(tap: .cgAnnotatedSessionEventTap)
+            keyUp?.post(tap: .cgAnnotatedSessionEventTap)
+        }
     }
 }
 
