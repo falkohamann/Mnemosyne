@@ -61,10 +61,14 @@ enum PasteService {
     /// use `String(str)` — the text is already plain at this point; no RTF to strip.
     @MainActor
     static func paste(item: ClipboardItem, mode: PasteMode) {
-        guard checkAccessibility() else { return }
+        let trusted = checkAccessibility()
+        print("[PasteService] accessibility trusted: \(trusted)")
+        guard trusted else {
+            print("[PasteService] aborting — no accessibility permission")
+            return
+        }
 
-        // Close the panel — previous app already has focus since we never took it
-        NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
+        // Close the panel
         for window in NSApp.windows where window is NSPanel {
             window.orderOut(nil)
         }
@@ -81,20 +85,24 @@ enum PasteService {
             case .plainText: finalStr = str
             }
             pasteboard.setString(finalStr, forType: .string)
+            print("[PasteService] wrote to pasteboard: \(finalStr.prefix(40))")
         case .image(let data):
             pasteboard.setData(data, forType: .png)
+            print("[PasteService] wrote image to pasteboard")
         }
 
-        // Small delay so the previous app has time to become key before ⌘V fires
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Longer delay so panel is fully gone and previous app is frontmost
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let src = CGEventSource(stateID: .hidSystemState)
             let vKey: CGKeyCode = 9
             let keyDown = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: true)
             let keyUp   = CGEvent(keyboardEventSource: src, virtualKey: vKey, keyDown: false)
             keyDown?.flags = .maskCommand
             keyUp?.flags   = .maskCommand
-            keyDown?.post(tap: .cgAnnotatedSessionEventTap)
-            keyUp?.post(tap: .cgAnnotatedSessionEventTap)
+            // .cghidEventTap targets the frontmost app at the HID level
+            keyDown?.post(tap: .cghidEventTap)
+            keyUp?.post(tap: .cghidEventTap)
+            print("[PasteService] CGEvent ⌘V posted")
         }
     }
 }
